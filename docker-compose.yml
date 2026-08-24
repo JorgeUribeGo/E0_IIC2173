@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - energyshark-net
+
+  master:
+    build:
+      context: ./master
+    restart: unless-stopped
+    env_file:
+      - ./master/.env
+    environment:
+      DB_HOST: db
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - energyshark-net
+
+  connector:
+    build:
+      context: ./connector
+    restart: unless-stopped
+    env_file:
+      - ./connector/.env
+    environment:
+      MASTER_EVENTS_URL: http://master:3000/events
+    depends_on:
+      master:
+        condition: service_healthy
+    networks:
+      - energyshark-net
+
+networks:
+  energyshark-net:
+    driver: bridge
+
+volumes:
+  pgdata:

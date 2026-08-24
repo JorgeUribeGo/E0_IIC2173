@@ -8,4 +8,6 @@ app.use(express.json());
 app.use('/events', eventsRouter);
 app.use('/history', historyRouter);
 
+app.get('/health', (req, res) => res.status(200).send('ok'));
+
 module.exports = app;

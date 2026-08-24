@@ -7,6 +7,11 @@ async function createEvent(req, res) {
         return res.status(400).json({ error: 'Payload inválido: Faltan campos requeridos' });
     }
 
+    const existing = await Message.findOne({ where: { idpk }, attributes: ['id'] });
+    if (existing) {
+        return res.status(200).json({ message: 'Evento ya registrado previamente' });
+    }
+
     try {
         const result = await sequelize.transaction(async (t) => {
             const message = await Message.create({
