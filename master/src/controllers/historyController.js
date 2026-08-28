@@ -52,12 +52,12 @@ async function getHistory(req, res) {
 
         const { count, rows } = await DemandRecord.findAndCountAll({
             where: recordWhere,
-            include: hasMessageFilters ? [{
+            include: [{
                 model: Message,
                 as: 'message',
-                where: messageWhere,
-                required: true
-            }] : [],
+                where: hasMessageFilters ? messageWhere : undefined,
+                required: hasMessageFilters
+            }],
             limit,
             offset,
             order: [['id', 'ASC']]
