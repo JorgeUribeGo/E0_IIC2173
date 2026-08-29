@@ -16,7 +16,7 @@ services:
     networks:
       - energyshark-net
 
-  master:
+  master1:
     build:
       context: ./master
     restart: unless-stopped
@@ -25,12 +25,29 @@ services:
     environment:
       DB_HOST: db
     ports:
-      - "3000:3000"
+      - "3001:3000"
     depends_on:
       db:
         condition: service_healthy
     networks:
       - energyshark-net
+
+  master2:
+    build:
+      context: ./master
+    restart: unless-stopped
+    env_file:
+      - ./master/.env
+    environment:
+      DB_HOST: db
+    ports:
+      - "3002:3000"
+    depends_on:
+      master1:
+        condition: service_healthy
+    networks:
+      - energyshark-net
+
 
   connector:
     build:
@@ -39,9 +56,9 @@ services:
     env_file:
       - ./connector/.env
     environment:
-      MASTER_EVENTS_URL: http://master:3000/events
+      MASTER_EVENTS_URL: http://master1:3000/events
     depends_on:
-      master:
+      master1:
         condition: service_healthy
     networks:
       - energyshark-net
